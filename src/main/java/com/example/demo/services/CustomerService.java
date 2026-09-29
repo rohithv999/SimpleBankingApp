@@ -12,10 +12,9 @@ import com.example.demo.models.Customer;
 public class CustomerService {
 
     private List<Customer> customers = new ArrayList<>(Arrays.asList(
-        new Customer(1, "John Doe"),
-        new Customer(2, "Sarah Smith"),
-        new Customer(3, "Mike Johnson")
-    ));
+            new Customer(1, "John Doe"),
+            new Customer(2, "Sarah Smith"),
+            new Customer(3, "Mike Johnson")));
 
     private int nextCustomerId = 4;
 
@@ -33,7 +32,7 @@ public class CustomerService {
     }
 
     public Customer createCustomer(Customer customer) {
-        customer.setId(nextCustomerId++);
+        // customer.setId(nextCustomerId++);
         if (customer.getAccounts() == null) {
             customer.setAccounts(new ArrayList<>());
         }
