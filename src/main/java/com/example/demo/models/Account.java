@@ -3,13 +3,20 @@ package com.example.demo.models;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import com.fasterxml.jackson.annotation.JsonBackReference;
 
+@Document(collection = "accounts")
 public class Account {
 
+    @Id
     private int accountId;
+
     @JsonBackReference
     private Customer customer;
+
     private double balance;
     private String accountType;
     private List<Transaction> transactions;

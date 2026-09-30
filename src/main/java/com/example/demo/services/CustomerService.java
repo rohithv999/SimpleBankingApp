@@ -1,60 +1,66 @@
 package com.example.demo.services;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
 
 import com.example.demo.models.Customer;
+import com.example.demo.repositories.CustomerRepository;
 
 @Service
 public class CustomerService {
 
-    private List<Customer> customers = new ArrayList<>(Arrays.asList(
-            new Customer(1, "John Doe"),
-            new Customer(2, "Sarah Smith"),
-            new Customer(3, "Mike Johnson")));
+    private final CustomerRepository customerRepository;
 
-    private int nextCustomerId = 4;
+    public CustomerService(CustomerRepository customerRepository) {
+        this.customerRepository = customerRepository;
+
+        // Add starter customers only if MongoDB is empty
+        if (customerRepository.count() == 0) {
+            customerRepository.save(new Customer(1, "John Doe"));
+            customerRepository.save(new Customer(2, "Sarah Smith"));
+            customerRepository.save(new Customer(3, "Mike Johnson"));
+        }
+    }
 
     public List<Customer> getAllCustomers() {
-        return customers;
+        return customerRepository.findAll();
     }
 
     public Customer getCustomerById(int id) {
-        for (Customer customer : customers) {
-            if (customer.getId() == id) {
-                return customer;
-            }
-        }
-        return null;
+        return customerRepository.findById(id).orElse(null);
     }
 
     public Customer createCustomer(Customer customer) {
-        // customer.setId(nextCustomerId++);
+
         if (customer.getAccounts() == null) {
             customer.setAccounts(new ArrayList<>());
         }
-        customers.add(customer);
-        return customer;
+
+        return customerRepository.save(customer);
     }
 
     public Customer updateCustomer(int id, Customer updatedCustomer) {
+
         Customer customer = getCustomerById(id);
+
         if (customer == null) {
             return null;
         }
+
         customer.setName(updatedCustomer.getName());
-        return customer;
+
+        return customerRepository.save(customer);
     }
 
     public boolean deleteCustomer(int id) {
-        Customer customer = getCustomerById(id);
-        if (customer == null) {
+
+        if (!customerRepository.existsById(id)) {
             return false;
         }
-        customers.remove(customer);
+
+        customerRepository.deleteById(id);
         return true;
     }
 }

@@ -1,6 +1,5 @@
 package com.example.demo.services;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
@@ -8,89 +7,147 @@ import org.springframework.stereotype.Service;
 import com.example.demo.models.Account;
 import com.example.demo.models.Customer;
 import com.example.demo.models.Transaction;
+import com.example.demo.repositories.AccountRepository;
 
 @Service
 public class AccountService {
 
-    private List<Account> accounts = new ArrayList<>();
-    private CustomerService customerService;
-    private int nextAccountId = 4;
-    private int nextTransactionId = 1;
+    private final AccountRepository accountRepository;
+    private final CustomerService customerService;
 
-    public AccountService(CustomerService customerService) {
+    public AccountService(AccountRepository accountRepository,
+            CustomerService customerService) {
+
+        this.accountRepository = accountRepository;
         this.customerService = customerService;
 
-        createInitialAccount(1, "SAVINGS", 1000.00);
-        createInitialAccount(2, "CHECKING", 500.00);
-        createInitialAccount(3, "SAVINGS", 750.00);
+        // Add starter accounts only if MongoDB has none
+        if (accountRepository.count() == 0) {
+            createInitialAccount(1, "SAVINGS", 1000.00);
+            createInitialAccount(2, "CHECKING", 500.00);
+            createInitialAccount(3, "SAVINGS", 750.00);
+        }
     }
 
-    private void createInitialAccount(int customerId, String accountType, double balance) {
+    private void createInitialAccount(int customerId,
+            String accountType,
+            double balance) {
+
         Customer customer = customerService.getCustomerById(customerId);
-        Account account = new Account(accounts.size() + 1, customer, accountType, balance);
-        accounts.add(account);
-        customer.getAccounts().add(account);
+
+        if (customer != null) {
+            int accountId = (int) accountRepository.count() + 1;
+
+            Account account = new Account(accountId, customer, accountType, balance);
+
+            accountRepository.save(account);
+        }
     }
 
     public List<Account> getAllAccounts() {
-        return accounts;
+        return accountRepository.findAll();
     }
 
     public Account createAccount(int userId, String accountType) {
-        Customer customer = customerService.getCustomerById(userId);
-        if (customer == null) return null;
 
-        Account account = new Account(nextAccountId++, customer, accountType, 0.00);
-        accounts.add(account);
-        customer.getAccounts().add(account);
-        return account;
+        Customer customer = customerService.getCustomerById(userId);
+
+        if (customer == null) {
+            return null;
+        }
+
+        int nextAccountId = accountRepository.findAll()
+                .stream()
+                .mapToInt(Account::getAccountId)
+                .max()
+                .orElse(0) + 1;
+
+        Account account = new Account(nextAccountId, customer, accountType, 0.00);
+
+        return accountRepository.save(account);
     }
 
     public Account getAccount(int accountId) {
-        for (Account account : accounts) {
-            if (account.getAccountId() == accountId) return account;
-        }
-        return null;
+        return accountRepository.findById(accountId).orElse(null);
     }
 
     public Account updateAccount(int accountId, String accountType) {
+
         Account account = getAccount(accountId);
-        if (account == null) return null;
+
+        if (account == null) {
+            return null;
+        }
+
         account.setAccountType(accountType);
-        return account;
+
+        return accountRepository.save(account);
     }
 
     public boolean deleteAccount(int accountId) {
-        Account account = getAccount(accountId);
-        if (account == null) return false;
 
-        if (account.getCustomer() != null) {
-            account.getCustomer().getAccounts().remove(account);
+        if (!accountRepository.existsById(accountId)) {
+            return false;
         }
-        accounts.remove(account);
+
+        accountRepository.deleteById(accountId);
+
         return true;
     }
 
     public Account deposit(int accountId, double amount) {
+
         Account account = getAccount(accountId);
-        if (account == null || amount <= 0) return null;
+
+        if (account == null || amount <= 0) {
+            return null;
+        }
 
         account.setBalance(account.getBalance() + amount);
-        account.getTransactions().add(new Transaction(nextTransactionId++, "DEPOSIT", amount));
-        return account;
+
+        int nextTransactionId = account.getTransactions()
+                .stream()
+                .mapToInt(Transaction::getTxnId)
+                .max()
+                .orElse(0) + 1;
+
+        account.getTransactions().add(
+                new Transaction(nextTransactionId, "DEPOSIT", amount));
+
+        return accountRepository.save(account);
     }
 
     public Account withdraw(int accountId, double amount) {
+
         Account account = getAccount(accountId);
-        if (account == null || amount <= 0 || amount > account.getBalance()) return null;
+
+        if (account == null ||
+                amount <= 0 ||
+                amount > account.getBalance()) {
+
+            return null;
+        }
 
         account.setBalance(account.getBalance() - amount);
-        account.getTransactions().add(new Transaction(nextTransactionId++, "WITHDRAW", amount));
-        return account;
+
+        int nextTransactionId = account.getTransactions()
+                .stream()
+                .mapToInt(Transaction::getTxnId)
+                .max()
+                .orElse(0) + 1;
+
+        account.getTransactions().add(
+                new Transaction(nextTransactionId, "WITHDRAW", amount));
+
+        return accountRepository.save(account);
     }
 
     public List<Transaction> getTransactions(int accountId) {
+
         Account account = getAccount(accountId);
-        return account == null ? null : account.getTransactions();
+
+        return account == null
+                ? null
+                : account.getTransactions();
     }
 }
