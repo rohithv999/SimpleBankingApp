@@ -83,3 +83,47 @@ export async function findCustomersByFirstName(firstName) {
 
     return response.json();
 }
+
+export async function registerUser(user) {
+    const response = await fetch(`${BASE_URL}/users/register`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(user),
+    });
+
+    if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "Registration failed");
+    }
+
+    return response.json();
+}
+
+export async function loginUser(user) {
+    const response = await fetch(`${BASE_URL}/users/login`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(user),
+    });
+
+    if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || "Login failed");
+    }
+
+    return response.json();
+}
+
+export async function getUsers() {
+    const response = await fetch(`${BASE_URL}/users`);
+
+    if (!response.ok) {
+        throw new Error("Failed to load users");
+    }
+
+    return response.json();
+}
