@@ -10,6 +10,16 @@ export async function getCustomers() {
     return response.json();
 }
 
+export async function getCustomerById(id) {
+    const response = await fetch(`${BASE_URL}/customers/${id}`);
+
+    if (!response.ok) {
+        throw new Error("Customer not found");
+    }
+
+    return response.json();
+}
+
 export async function getAccounts() {
     const response = await fetch(`${BASE_URL}/accounts`);
 
@@ -60,4 +70,16 @@ export async function deleteCustomer(id) {
     if (!response.ok) {
         throw new Error("Failed to delete customer");
     }
+}
+
+export async function findCustomersByFirstName(firstName) {
+    const response = await fetch(
+        `${BASE_URL}/customers/search?firstName=${encodeURIComponent(firstName)}`
+    );
+
+    if (!response.ok) {
+        throw new Error("Failed to search customers");
+    }
+
+    return response.json();
 }

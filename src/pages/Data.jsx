@@ -1,12 +1,24 @@
 import { useEffect, useState } from "react";
-import { getCustomers, getAccounts, createCustomer, updateCustomer, deleteCustomer } from "../api/DataService";
+import { getCustomers, getCustomerById, getAccounts, createCustomer, updateCustomer, deleteCustomer, findCustomersByFirstName } from "../api/DataService";
 
 function Data() {
     const [customers, setCustomers] = useState([]);
     const [accounts, setAccounts] = useState([]);
     const [error, setError] = useState("");
+
+    const [loading, setLoading] = useState(true);
+
     const [customerId, setCustomerId] = useState("");
     const [customerName, setCustomerName] = useState("");
+
+    const [searchId, setSearchId] = useState("");
+    const [foundCustomer, setFoundCustomer] = useState(null);
+
+    const [searchError, setSearchError] = useState("");
+
+    const [firstName, setFirstName] = useState("");
+    const [nameResults, setNameResults] = useState([]);
+    const [nameSearchMessage, setNameSearchMessage] = useState("");
 
     useEffect(() => {
         loadData();
@@ -14,6 +26,9 @@ function Data() {
 
     async function loadData() {
         try {
+            setLoading(true);
+            setError("");
+
             const customerData = await getCustomers();
             const accountData = await getAccounts();
 
@@ -22,6 +37,8 @@ function Data() {
         } catch (err) {
             setError("Unable to load banking data.");
             console.error(err);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -57,7 +74,9 @@ function Data() {
 
         try {
             await updateCustomer(customer.id, {
+                id: customer.id,
                 name: newName,
+                accounts: customer.accounts || [],
             });
 
             await loadData();
@@ -85,13 +104,122 @@ function Data() {
         }
     }
 
+    async function handleSearchCustomer(event) {
+        event.preventDefault();
+
+        try {
+            setSearchError("");
+            setFoundCustomer(null);
+
+            const customer = await getCustomerById(searchId);
+
+            setFoundCustomer(customer);
+        } catch (err) {
+            setFoundCustomer(null);
+            setSearchError(`Customer with ID ${searchId} was not found.`);
+            console.error(err);
+        }
+    }
+
+    async function handleFirstNameSearch(event) {
+        event.preventDefault();
+
+        try {
+            setNameSearchMessage("");
+            setNameResults([]);
+
+            const results = await findCustomersByFirstName(firstName);
+
+            if (results.length === 0) {
+                setNameSearchMessage(
+                    `No customers found with first name "${firstName}".`
+                );
+            } else {
+                setNameResults(results);
+            }
+        } catch (err) {
+            setNameSearchMessage("Unable to search for customers.");
+            console.error(err);
+        }
+    }
+
     return (
         <main className="page-body">
             <h1>Banking Data</h1>
 
-            {error && <p>{error}</p>}
+            {loading && <p>Loading banking data...</p>}
+
+            {error && <p className="error-message">{error}</p>}
 
             <h2>Customers</h2>
+
+            <h3>Find Customer By ID</h3>
+
+            <form onSubmit={handleSearchCustomer}>
+                <input
+                    type="number"
+                    placeholder="Customer ID"
+                    value={searchId}
+                    onChange={(event) => setSearchId(event.target.value)}
+                    required
+                />
+
+                <button type="submit">Search</button>
+            </form>
+
+            {searchError && (
+                <p className="error-message">{searchError}</p>
+            )}
+
+            {foundCustomer && (
+                <div>
+                    <p>
+                        <strong>Customer ID:</strong> {foundCustomer.id}
+                    </p>
+
+                    <p>
+                        <strong>Name:</strong> {foundCustomer.name}
+                    </p>
+                </div>
+            )}
+
+            <h3>Find Customer By First Name</h3>
+
+            <form onSubmit={handleFirstNameSearch}>
+                <input
+                    type="text"
+                    placeholder="First Name"
+                    value={firstName}
+                    onChange={(event) => setFirstName(event.target.value)}
+                    required
+                />
+
+                <button type="submit">Search</button>
+            </form>
+
+            {nameSearchMessage && (
+                <p>{nameSearchMessage}</p>
+            )}
+
+            {nameResults.length > 0 && (
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Customer ID</th>
+                            <th>Name</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {nameResults.map((customer) => (
+                            <tr key={customer.id}>
+                                <td>{customer.id}</td>
+                                <td>{customer.name}</td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            )}
 
             <form onSubmit={handleCreateCustomer}>
                 <input
@@ -113,9 +241,9 @@ function Data() {
                 <button type="submit">Add Customer</button>
             </form>
 
-            {customers.length === 0 ? (
+            {!loading && customers.length === 0 ? (
                 <p>No customers found.</p>
-            ) : (
+            ) : !loading ? (
                 <table>
                     <thead>
                         <tr>
@@ -132,11 +260,11 @@ function Data() {
                                 <td>{customer.name}</td>
 
                                 <td>
-                                    <button onClick={() => handleUpdateCustomer(customer)}>
+                                    <button type="button" onClick={() => handleUpdateCustomer(customer)}>
                                         Edit
                                     </button>
 
-                                    <button onClick={() => handleDeleteCustomer(customer.id)}>
+                                    <button type="button" onClick={() => handleDeleteCustomer(customer.id)}>
                                         Delete
                                     </button>
                                 </td>
@@ -144,13 +272,13 @@ function Data() {
                         ))}
                     </tbody>
                 </table>
-            )}
+            ) : null}
 
             <h2>Accounts</h2>
 
-            {accounts.length === 0 ? (
+            {!loading && accounts.length === 0 ? (
                 <p>No accounts found.</p>
-            ) : (
+            ) : !loading ? (
                 <table>
                     <thead>
                         <tr>
@@ -170,7 +298,7 @@ function Data() {
                         ))}
                     </tbody>
                 </table>
-            )}
+            ) : null}
         </main>
     );
 }
