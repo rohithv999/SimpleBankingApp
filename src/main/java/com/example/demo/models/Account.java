@@ -14,6 +14,8 @@ public class Account {
     @Id
     private int accountId;
 
+    private int customerId;
+
     @JsonBackReference
     private Customer customer;
 
@@ -28,6 +30,7 @@ public class Account {
     public Account(int accountId, Customer customer, String accountType, double balance) {
         this.accountId = accountId;
         this.customer = customer;
+        this.customerId = customer != null ? customer.getId() : 0;
         this.accountType = accountType;
         this.balance = balance;
         this.transactions = new ArrayList<>();
@@ -43,6 +46,14 @@ public class Account {
 
     public Customer getCustomer() {
         return customer;
+    }
+
+    public int getCustomerId() {
+        return customerId;
+    }
+
+    public void setCustomerId(int customerId) {
+        this.customerId = customerId;
     }
 
     public void setCustomer(Customer customer) {
