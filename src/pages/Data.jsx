@@ -20,6 +20,12 @@ function Data() {
     const [nameResults, setNameResults] = useState([]);
     const [nameSearchMessage, setNameSearchMessage] = useState("");
 
+    const foundCustomerAccounts = foundCustomer
+        ? accounts.filter(
+            (account) => account.customerId === foundCustomer.id
+        )
+        : [];
+
     useEffect(() => {
         loadData();
     }, []);
@@ -180,6 +186,32 @@ function Data() {
                     <p>
                         <strong>Name:</strong> {foundCustomer.name}
                     </p>
+
+                    <h4>Customer Accounts</h4>
+
+                    {foundCustomerAccounts.length === 0 ? (
+                        <p>This customer has no accounts.</p>
+                    ) : (
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Account ID</th>
+                                    <th>Account Type</th>
+                                    <th>Balance</th>
+                                </tr>
+                            </thead>
+
+                            <tbody>
+                                {foundCustomerAccounts.map((account) => (
+                                    <tr key={account.accountId}>
+                                        <td>{account.accountId}</td>
+                                        <td>{account.accountType}</td>
+                                        <td>${account.balance.toFixed(2)}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    )}
                 </div>
             )}
 
