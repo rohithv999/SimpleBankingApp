@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.demo.models.Customer;
 import com.example.demo.services.CustomerService;
@@ -55,5 +56,12 @@ public class CustomerController {
         return customerService.deleteCustomer(id)
                 ? ResponseEntity.noContent().build()
                 : ResponseEntity.notFound().build();
+    }
+
+    @GetMapping("/search")
+    public List<Customer> findCustomersByFirstName(
+            @RequestParam String firstName) {
+
+        return customerService.findCustomersByFirstName(firstName);
     }
 }

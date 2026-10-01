@@ -63,4 +63,8 @@ public class CustomerService {
         customerRepository.deleteById(id);
         return true;
     }
+
+    public List<Customer> findCustomersByFirstName(String firstName) {
+        return customerRepository.findByNameStartingWithIgnoreCase(firstName);
+    }
 }
