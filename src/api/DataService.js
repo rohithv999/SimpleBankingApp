@@ -1,7 +1,9 @@
-const BASE_URL = "http://localhost:8080/api";
+const API_URL =
+    import.meta.env.VITE_API_URL ||
+    "https://h746g6dyc4.execute-api.us-east-1.amazonaws.com/api";
 
 export async function getCustomers() {
-    const response = await fetch(`${BASE_URL}/customers`);
+    const response = await fetch(`${API_URL}/customers`);
 
     if (!response.ok) {
         throw new Error("Failed to load customers");
@@ -11,7 +13,7 @@ export async function getCustomers() {
 }
 
 export async function getCustomerById(id) {
-    const response = await fetch(`${BASE_URL}/customers/${id}`);
+    const response = await fetch(`${API_URL}/customers/${id}`);
 
     if (!response.ok) {
         throw new Error("Customer not found");
@@ -21,7 +23,7 @@ export async function getCustomerById(id) {
 }
 
 export async function getAccounts() {
-    const response = await fetch(`${BASE_URL}/accounts`);
+    const response = await fetch(`${API_URL}/accounts`);
 
     if (!response.ok) {
         throw new Error("Failed to load accounts");
@@ -31,7 +33,7 @@ export async function getAccounts() {
 }
 
 export async function createCustomer(customer) {
-    const response = await fetch(`${BASE_URL}/customers`, {
+    const response = await fetch(`${API_URL}/customers`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -47,7 +49,7 @@ export async function createCustomer(customer) {
 }
 
 export async function updateCustomer(id, customer) {
-    const response = await fetch(`${BASE_URL}/customers/${id}`, {
+    const response = await fetch(`${API_URL}/customers/${id}`, {
         method: "PUT",
         headers: {
             "Content-Type": "application/json",
@@ -63,7 +65,7 @@ export async function updateCustomer(id, customer) {
 }
 
 export async function deleteCustomer(id) {
-    const response = await fetch(`${BASE_URL}/customers/${id}`, {
+    const response = await fetch(`${API_URL}/customers/${id}`, {
         method: "DELETE",
     });
 
@@ -74,7 +76,7 @@ export async function deleteCustomer(id) {
 
 export async function findCustomersByFirstName(firstName) {
     const response = await fetch(
-        `${BASE_URL}/customers/search?firstName=${encodeURIComponent(firstName)}`
+        `${API_URL}/customers/search?firstName=${encodeURIComponent(firstName)}`
     );
 
     if (!response.ok) {
@@ -85,7 +87,7 @@ export async function findCustomersByFirstName(firstName) {
 }
 
 export async function registerUser(user) {
-    const response = await fetch(`${BASE_URL}/users/register`, {
+    const response = await fetch(`${API_URL}/users/register`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -102,7 +104,7 @@ export async function registerUser(user) {
 }
 
 export async function loginUser(user) {
-    const response = await fetch(`${BASE_URL}/users/login`, {
+    const response = await fetch(`${API_URL}/users/login`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json",
@@ -119,7 +121,7 @@ export async function loginUser(user) {
 }
 
 export async function getUsers() {
-    const response = await fetch(`${BASE_URL}/users`);
+    const response = await fetch(`${API_URL}/users`);
 
     if (!response.ok) {
         throw new Error("Failed to load users");
